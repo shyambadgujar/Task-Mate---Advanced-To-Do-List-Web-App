@@ -42,13 +42,22 @@ export const tasks = pgTable("tasks", {
   categoryId: integer("category_id").notNull(),
 });
 
-export const insertTaskSchema = createInsertSchema(tasks).pick({
-  title: true,
-  description: true,
-  dueDate: true,
-  completed: true,
-  categoryId: true,
-});
+// Create task schema with custom validation for dueDate
+export const insertTaskSchema = createInsertSchema(tasks)
+  .pick({
+    title: true,
+    description: true,
+    dueDate: true,
+    completed: true,
+    categoryId: true,
+  })
+  .extend({
+    // Allow both Date objects and ISO string format for dueDate
+    dueDate: z.union([
+      z.date(),
+      z.string().transform(val => new Date(val))
+    ]),
+  });
 
 export type InsertTask = z.infer<typeof insertTaskSchema>;
 export type Task = typeof tasks.$inferSelect;
